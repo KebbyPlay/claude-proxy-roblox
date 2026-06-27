@@ -3,7 +3,7 @@ const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.post("/claude", async (req, res) => {
   try {
@@ -13,26 +13,18 @@ app.post("/claude", async (req, res) => {
       return res.status(400).json({ error: "Campo 'message' é obrigatório." });
     }
 
-    const payload = {
-      model: "claude-sonnet-4-6",
-      max_tokens: 300,
-      messages: [{ role: "user", content: message }],
-    };
+    const prompt = system ? `${system}\n\n${message}` : message;
 
-    // System prompt opcional (personalidade do NPC, narrador, etc.)
-    if (system) {
-      payload.system = system;
-    }
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": CLAUDE_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
 
     const data = await response.json();
 
@@ -40,7 +32,7 @@ app.post("/claude", async (req, res) => {
       return res.status(response.status).json({ error: data });
     }
 
-    const text = data.content[0].text;
+    const text = data.candidates[0].content.parts[0].text;
     res.json({ resposta: text });
 
   } catch (err) {
@@ -50,7 +42,7 @@ app.post("/claude", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Proxy Claude ativo!");
+  res.send("Proxy Gemini ativo!");
 });
 
 app.listen(PORT, () => {
