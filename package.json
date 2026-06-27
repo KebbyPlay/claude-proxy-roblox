@@ -1,0 +1,12 @@
+{
+  "name": "claude-proxy-roblox",
+  "version": "1.0.0",
+  "description": "Proxy para conectar Roblox à API do Claude",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
